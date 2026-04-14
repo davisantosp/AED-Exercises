@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+long long countSwaps = 0;
+
 typedef struct
 {
     int id;
@@ -10,9 +12,10 @@ typedef struct
 Patient newPatient(int id, int priority);
 void quickSort(Patient *array, int low, int high, int size);
 int partition(Patient *array, int low, int high, int size);
-int pivotChoice(Patient *array, int size);
+int priority(Patient patient1, Patient patient2);
+void threeMedianPivot(Patient* array, int low, int high);
 void swap(Patient *n1, Patient *n2);
-void printArray(Patient *array, int size);
+void printIdArray(Patient *array, int size);
 
 int main()
 {
@@ -27,9 +30,15 @@ int main()
 
         patientArray[i] = patient;
     }
-
-    printArray(patientArray, n);
+    quickSort(patientArray, 0, n-1, n);
+    printIdArray(patientArray, n);
+    printf("Swaps: %lld", countSwaps);
     return 0;
+}
+
+Patient newPatient(int id, int priority){
+    Patient patient = {id, priority};
+    return patient;
 }
 
 void quickSort(Patient *array, int low, int high, int size)
@@ -41,44 +50,49 @@ void quickSort(Patient *array, int low, int high, int size)
         quickSort(array, mid + 1, high, size);
     }
 }
+
 int partition(Patient *array, int low, int high, int size)
 {
+    threeMedianPivot(array, low, high);
     Patient pivot = array[high];
     int i = low - 1;
-    for (int j = low; j <= high - 1; j++)
+    for (int j = low; j < high - 1; j++)
     {
-        if (array[j].priority >= pivot.priority)
-        {
+        if (priority(j[array], pivot) && i != j)
             swap(&array[++i], &array[j]);
-        }
     }
-    swap(&array[++i], &array[high]);
+    swap(&array[i++], &array[high]);
     return i;
 }
 
-// int pivotChoice(int *array, int size)
-// {
-//     int n1 = array[0], n2 = array[size / 2], n3 = array[size - 1];
-//     if (n1 > n2 && n3 > n2)
-//         return n3 > n1 ? n1 : n3;
-//     if (n2 > n3 && n1 > n3)
-//         return n1 > n2 ? n2 : n1;
-//     if (n3 > n1 && n2 > n1)
-//         return n2 > n3 ? n3 : n2;
-// }
+void threeMedianPivot(Patient* array, int low, int high){
+    int mid = low + (high - low)/2;
+
+    if (priority(array[mid], array[low])) swap(&array[mid], &array[low]);
+    if (priority(array[high], array[low])) swap(&array[high], &array[low]);
+    if (priority(array[high], array[mid])) swap(&array[high], &array[mid]);
+
+    swap(&array[mid], &array[high]);
+}
+
+int priority(Patient patient1, Patient patient2){
+    if (patient1.priority < patient2.priority) return 1;
+    else if (patient1.priority == patient2.priority && patient1.id > patient2.id) return 1;
+    return 0;
+}
 
 void swap(Patient *n1, Patient *n2)
 {
     Patient temp = *n1;
     *n1 = *n2;
     *n2 = temp;
+    countSwaps++;
 }
 
 void printIdArray(Patient *array, int size)
 {
     for (int i = 0; i < size; i++)
     {
-        printf("%d ", array[i].id);
+        printf("%d\n", array[i].id);
     }
-    printf("\n");
 }
